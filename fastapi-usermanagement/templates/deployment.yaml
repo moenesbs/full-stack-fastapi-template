@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}
+  labels:
+    app: {{ .Values.appName }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+    spec:
+      containers:
+        - name: {{ .Values.appName }}
+          image: {{ .Values.image.repository }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.image.port }}
+          env:
+            - name: DOMAIN
+              value: '{{ .Values.env.DOMAIN }}'
+            - name: SECRET_KEY
+              value: '{{ .Values.env.SECRET_KEY }}'
+            - name: FIRST_SUPERUSER
+              value: '{{ .Values.env.FIRST_SUPERUSER }}'
+            - name: FIRST_SUPERUSER_PASSWORD
+              value: '{{ .Values.env.FIRST_SUPERUSER_PASSWORD }}'
+            - name: POSTGRES_SERVER
+              value: '{{ .Values.env.POSTGRES_SERVER }}'
+            - name: POSTGRES_PORT
+              value: '{{ .Values.env.POSTGRES_PORT }}'
+            - name: POSTGRES_DB
+              value: '{{ .Values.env.POSTGRES_DB }}'
+            - name: POSTGRES_USER
+              value: '{{ .Values.env.POSTGRES_USER }}'
+            - name: POSTGRES_PASSWORD
+              value: '{{ .Values.env.POSTGRES_PASSWORD }}'
+            - name: PROJECT_NAME
+              value: '{{ .Values.env.PROJECT_NAME }}'
+
+
