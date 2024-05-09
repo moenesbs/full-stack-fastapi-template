@@ -1,0 +1,59 @@
+replicaCount: 1
+
+appName: fastapi-usermanagement
+
+backendImage:
+  repository: moenesbens/fastapi-back
+  pullPolicy: IfNotPresent
+  port: 8000
+
+BackendService:
+  serviceName: fastapi-usermanagement-service
+  type: LoadBalancer
+  protocol: TCP
+  targetPort: 8000
+  port: 8000
+
+backendEnv:
+  DOMAIN: fastapi-backend
+  SECRET_KEY: changethis
+  FIRST_SUPERUSER: admin@example.com
+  FIRST_SUPERUSER_PASSWORD: changethis
+  POSTGRES_SERVER: postgres-service
+  POSTGRES_PORT: 5432
+  POSTGRES_DB: app
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: changethis
+  PROJECT_NAME: Fast api usermanager
+
+persistentVolume:
+  storageClassName: manual
+  storage: 10Gi
+  accessModes: ReadWriteMany
+  hostPath: /data/postgresql
+  volumeName: postgres-volume
+
+persistentVolumeClaim:
+  claimName: postgres-volume-claim
+
+dbImage:
+  repository: postgres:12
+  pullPolicy: IfNotPresent
+  port: 5432
+  containerName: postgres
+  volumeName: postgresdata
+  volumeMountPath: /var/lib/postgresql/data
+
+dbEnv:
+  POSTGRES_PASSWORD: changethis
+  POSTGRES_USER: postgres
+  POSTGRES_DB: app
+  POSTGRES_SERVER: localhost
+  POSTGRES_PORT: 5432
+
+
+dbService:
+  serviceName: postgres-service
+  type: NodePort
+  protocol: TCP
+  port: 5432

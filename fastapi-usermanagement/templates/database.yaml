@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.persistentVolume.volumeName }}
+  labels:
+    type: local
+    app: {{ .Values.dbImage.containerName }}
+spec:
+  storageClassName: {{ .Values.persistentVolume.storageClassName }}
+  capacity:
+    storage: {{ .Values.persistentVolume.storage }}
+  accessModes:
+    - {{ .Values.persistentVolume.accessModes }}
+  hostPath:
+    path: {{ .Values.persistentVolume.hostPath }}
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-volume-claim
+  labels:
+    app: {{ .Values.dbImage.containerName }}
+spec:
+  storageClassName: {{ .Values.persistentVolume.storageClassName }}
+  volumeName: '{{ .Values.persistentVolume.volumeName }}'
+  accessModes:
+    - {{ .Values.persistentVolume.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.persistentVolume.storage }}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.dbImage.containerName }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.dbImage.containerName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.dbImage.containerName }}
+    spec:
+      containers:
+        - name: {{ .Values.dbImage.containerName }}
+          image: {{ .Values.dbImage.repository }}
+          imagePullPolicy: {{ .Values.dbImage.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.dbImage.port }}
+          env:
+            - name: POSTGRES_SERVER
+              value: {{ .Values.dbEnv.POSTGRES_SERVER }}
+            - name: POSTGRES_PORT
+              value: '{{ .Values.dbEnv.POSTGRES_PORT }}'
+            - name: POSTGRES_PASSWORD
+              value: '{{ .Values.dbEnv.POSTGRES_PASSWORD }}'
+            - name: POSTGRES_USER
+              value: '{{ .Values.dbEnv.POSTGRES_USER }}'
+            - name: POSTGRES_DB
+              value: '{{ .Values.dbEnv.POSTGRES_DB }}'
+          volumeMounts:
+            - mountPath: {{ .Values.dbImage.volumeMountPath }}
+              name: {{ .Values.dbImage.volumeName }}
+      volumes:
+        - name: {{ .Values.dbImage.volumeName }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistentVolumeClaim.claimName }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.dbService.serviceName }}
+  labels:
+    app: {{ .Values.dbImage.containerName }}
+spec:
+  type: {{ .Values.dbService.type }}
+  ports:
+    - port: {{ .Values.dbService.port }}
+  selector:
+    app: {{ .Values.dbImage.containerName }}
