@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}
+  labels:
+    app: {{ .Values.appName }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+    spec:
+      containers:
+        - name: {{ .Values.appName }}
+          image: {{ .Values.backendImage.repository }}
+          imagePullPolicy: {{ .Values.backendImage.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.backendImage.port }}
+          env:
+            - name: DOMAIN
+              value: '{{ .Values.backendEnv.DOMAIN }}'
+            - name: SECRET_KEY
+              value: '{{ .Values.backendEnv.SECRET_KEY }}'
+            - name: FIRST_SUPERUSER
+              value: '{{ .Values.backendEnv.FIRST_SUPERUSER }}'
+            - name: FIRST_SUPERUSER_PASSWORD
+              value: '{{ .Values.backendEnv.FIRST_SUPERUSER_PASSWORD }}'
+            - name: POSTGRES_SERVER
+              value: '{{ .Values.backendEnv.POSTGRES_SERVER }}'
+            - name: POSTGRES_PORT
+              value: '{{ .Values.backendEnv.POSTGRES_PORT }}'
+            - name: POSTGRES_DB
+              value: '{{ .Values.backendEnv.POSTGRES_DB }}'
+            - name: POSTGRES_USER
+              value: '{{ .Values.backendEnv.POSTGRES_USER }}'
+            - name: POSTGRES_PASSWORD
+              value: '{{ .Values.backendEnv.POSTGRES_PASSWORD }}'
+            - name: PROJECT_NAME
+              value: '{{ .Values.backendEnv.PROJECT_NAME }}'
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.BackendService.serviceName }}
+spec:
+  type: {{ .Values.BackendService.type }}
+  ports:
+    - port: {{ .Values.BackendService.port }}
+      targetPort: {{ .Values.BackendService.targetPort }}
+      protocol: {{ .Values.BackendService.protocol }}
+  selector:
+    app: {{ .Values.appName }}
+
